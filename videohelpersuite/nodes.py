@@ -580,8 +580,8 @@ class LoadAudio:
             "optional" : {"seek_seconds": ("FLOAT", {"default": 0, "min": 0})}
         }
 
-    RETURN_TYPES = ("AUDIO",)
-    RETURN_NAMES = ("audio",)
+    RETURN_TYPES = ("AUDIO", "INT")
+    RETURN_NAMES = ("audio", 'duration')
     CATEGORY = "Video Helper Suite 🎥🅥🅗🅢/audio"
     FUNCTION = "load_audio"
     def load_audio(self, audio_file, seek_seconds):
@@ -592,7 +592,8 @@ class LoadAudio:
             audio_file = try_download_video(audio_file) or audio_file
         #Eagerly fetch the audio since the user must be using it if the
         #node executes, unlike Load Video
-        return (get_audio(audio_file, start_time=seek_seconds),)
+        ret = get_audio(audio_file, start_time=seek_seconds)
+        return (ret, ret['duration'])
 
     @classmethod
     def IS_CHANGED(s, audio_file, seek_seconds):

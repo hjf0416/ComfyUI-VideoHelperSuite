@@ -194,7 +194,10 @@ def get_audio(file, start_time=0, duration=0):
         res =  subprocess.run(args + ["-f", "f32le", "-"],
                               capture_output=True, check=True)
         audio = torch.frombuffer(bytearray(res.stdout), dtype=torch.float32)
-        match = re.search(', (\\d+) Hz, (\\w+), ',res.stderr.decode('utf-8'))
+        content = res.stderr.decode('utf-8')
+        match = re.search(', (\\d+) Hz, (\\w+), ',content)
+        durationMatch = re.search('Duration: (\d{2}):(\d{2}):(\d{2})\.(\d{2})', content)
+        durationInSeconds = int(durationMatch.group(1)) * 3600 + int(durationMatch.group(2))*60 + int(durationMatch.group(3)) + 1
     except subprocess.CalledProcessError as e:
         raise Exception(f"VHS failed to extract audio from {file}:\n" \
                 + e.stderr.decode("utf-8"))
@@ -207,7 +210,7 @@ def get_audio(file, start_time=0, duration=0):
         ar = 44100
         ac = 2
     audio = audio.reshape((-1,ac)).transpose(0,1).unsqueeze(0)
-    return {'waveform': audio, 'sample_rate': ar}
+    return {'waveform': audio, 'sample_rate': ar, 'duration': durationInSeconds}
 
 class LazyAudioMap(Mapping):
     def __init__(self, file, start_time, duration):
